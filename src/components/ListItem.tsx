@@ -1,10 +1,7 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    interpolate,
     LinearTransition,
-    SharedValue,
-    useAnimatedStyle,
     withSpring,
 } from 'react-native-reanimated';
 import isEqual from 'react-fast-compare';

@@ -13,7 +13,7 @@ import { Button } from '../components/Button';
 import CustomModal from '../components/CustomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ModalRef } from '../components/type';
-import Animated, { LinearTransition, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import AddTaskComponent from '../components/AddTask';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -27,8 +27,6 @@ const HomeScreen = () => {
     const [isAppInited, setIsAppInited] = useState<boolean>(false);
     const [isAscending, setisAscending] = useState(false)
     // const translationY = useSharedValue(0);
-
-    const todoList = useAppSelector(state => state.todo.TodoList)
     const sortedTodoList = useAppSelector(state => sortedTodoListSelector(state, isAscending))
 
     useEffect(() => {
@@ -86,7 +84,7 @@ const HomeScreen = () => {
                     isAppInited ?
                         <AnimatedList
                             data={sortedTodoList}
-                            extraData={todoList}
+                            extraData={sortedTodoList}
                             itemLayoutAnimation={LinearTransition}
                             keyExtractor={item => item.id.toString()}
                             showsVerticalScrollIndicator={false}

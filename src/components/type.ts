@@ -1,5 +1,4 @@
 import {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {TodoItemType} from '../common/Type';
 import {ReactNode} from 'react';
 
 export interface CheckBoxProps {
