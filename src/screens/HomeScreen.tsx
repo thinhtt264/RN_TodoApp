@@ -26,7 +26,7 @@ const HomeScreen = () => {
     const dispatch = useAppDispatch();
     const [isAppInited, setIsAppInited] = useState<boolean>(false);
     const [isAscending, setisAscending] = useState(false)
-    const translationY = useSharedValue(0);
+    // const translationY = useSharedValue(0);
 
     const todoList = useAppSelector(state => state.todo.TodoList)
     const sortedTodoList = useAppSelector(state => sortedTodoListSelector(state, isAscending))
@@ -40,9 +40,9 @@ const HomeScreen = () => {
         })
     }, [])
 
-    const scrollHandler = useAnimatedScrollHandler(event => {
-        translationY.value = event.contentOffset.y;
-    });
+    // const scrollHandler = useAnimatedScrollHandler(event => {
+    //     translationY.value = event.contentOffset.y;
+    // });
 
     const onPressCreateTask = () => {
         modalAddTaskRef?.current?.show()
@@ -69,7 +69,7 @@ const HomeScreen = () => {
     }
 
     const renderItem = (item: TodoItemType, index: number) => {
-        return <ListItem item={item} translationY={translationY} index={index} onSaveEdit={onSaveEdit} onDeleteTask={onDeleteTask} />
+        return <ListItem item={item} index={index} onSaveEdit={onSaveEdit} onDeleteTask={onDeleteTask} />
     }
 
     return (
@@ -87,7 +87,6 @@ const HomeScreen = () => {
                         <AnimatedList
                             data={sortedTodoList}
                             extraData={todoList}
-                            onScroll={scrollHandler}
                             itemLayoutAnimation={LinearTransition}
                             keyExtractor={item => item.id.toString()}
                             showsVerticalScrollIndicator={false}

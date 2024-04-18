@@ -5,7 +5,6 @@ import Animated, {
     LinearTransition,
     SharedValue,
     useAnimatedStyle,
-    withDelay,
     withSpring,
 } from 'react-native-reanimated';
 import isEqual from 'react-fast-compare';
@@ -20,7 +19,7 @@ type ListItemProps = {
     onSaveEdit: (item: TodoItemType) => void;
     index: number;
     onDeleteTask: (id: string) => void;
-    translationY: SharedValue<number>;
+    // translationY: SharedValue<number>;
 };
 
 const getPriorityTextStyle = (priority: PriorityType) => {
@@ -71,7 +70,7 @@ const existing = () => {
 
 const Item_Height = scale(160)
 
-const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index, translationY }: ListItemProps) => {
+const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index }: ListItemProps) => {
     const [isEdit, setIsEdit] = useState(false)
     const { isDone = false, title, priority, time } = item
     const priorityTextStyle = useMemo(() => getPriorityTextStyle(priority), [priority]);
@@ -83,11 +82,10 @@ const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index, translationY
 
     const entering = useCallback(() => {
         'worklet';
-        const delay = index <= 5 ? index * 150 : 5 * 150;
         const animations = {
-            opacity: withDelay(delay, withSpring(1, { duration: 500 })),
+            opacity: withSpring(1, { duration: 500 }),
             transform: [
-                { scale: withDelay(delay, withSpring(1, { damping: 6, stiffness: 80, mass: 0.4 })) },
+                { scale: withSpring(1, { damping: 6, stiffness: 80, mass: 0.4 }) },
             ],
         };
         const initialValues = {
@@ -100,17 +98,17 @@ const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index, translationY
         };
     }, []);
 
-    const stylez = useAnimatedStyle(() => {
-        const scale = interpolate(
-            translationY.value,
-            [-1, 0, Item_Height * index, Item_Height * (index + 2.1)],
-            [1, 1, 1, 0],
-            'clamp',
-        );
-        return {
-            transform: [{ scale }],
-        };
-    });
+    // const stylez = useAnimatedStyle(() => {
+    //     const scale = interpolate(
+    //         translationY.value,
+    //         [-1, 0, Item_Height * index, Item_Height * (index + 2.1)],
+    //         [1, 1, 1, 0],
+    //         'clamp',
+    //     );
+    //     return {
+    //         transform: [{ scale }],
+    //     };
+    // }); không có height cố định không làm trò này được
 
     const onPressDeleteTask = (id: string) => {
         setIsEdit(false)
@@ -124,7 +122,7 @@ const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index, translationY
             layout={LinearTransition}
             entering={entering}
             exiting={existing}
-            style={[styles.container, stylez]}>
+            style={styles.container}>
             <Animated.View
                 style={styles.card}>
                 {
