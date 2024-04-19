@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
+import React, { memo, useCallback, useRef, useState } from 'react'
 import { Input } from './Input'
 import { Colors, Layout } from '../themes'
-import { fontScale, formatDate, formatPriority, PriorityType, scale, TodoItemType } from '../common'
+import { fontScale, formatDate, formatPriority, PriorityType, scale } from '../common'
 import DatePicker from 'react-native-date-picker'
 import { TouchableOpacity } from 'react-native'
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated'
@@ -12,19 +12,20 @@ import { ModalRef } from './type'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 type Props = {
-    onPressSave: (item: TodoItemType) => void;
-    item: TodoItemType;
-    onDeleteTask: (id: string) => void
+    onPressSave: () => void;
+    onDeleteTask: () => void;
+    inputRef: any;
+    onChangeText: (text: string) => void
+    date: Date
+    setDate: (date: Date) => void
+    setPriority: (priority: PriorityType) => void
+    priority: PriorityType
 }
 
-const EditTask = ({ onPressSave, item, onDeleteTask }: Props) => {
-    const { title, time = Date.now() } = item
+const EditTask = ({ onPressSave, onDeleteTask, inputRef, onChangeText, date, setDate, setPriority, priority }: Props) => {
     const modalPriorityRef = useRef<ModalRef>()
 
-    const [date, setDate] = useState(new Date(time))
     const [openTimePick, setOpenTimePick] = useState(false)
-    const [priority, setPriority] = useState<PriorityType>(item.priority)
-    const [taskTitle, setTaskTitle] = useState(title)
 
     const onPickPriority = useCallback((priority: PriorityType) => {
         setPriority(priority)
@@ -36,33 +37,28 @@ const EditTask = ({ onPressSave, item, onDeleteTask }: Props) => {
     }, [])
 
     const onPressEdit = () => {
-        onPressSave({
-            ...item,
-            time: date.getTime(),
-            priority: priority,
-            title: taskTitle
-        })
+        onPressSave()
     }
 
-    const onPressDelete = (id: string) => {
-        onDeleteTask(id)
-    }
 
     return (
         <>
-            <TouchableOpacity style={styles.delete} activeOpacity={0.7} hitSlop={25} onPress={() => onPressDelete(item.id)}>
+            <TouchableOpacity style={styles.delete} activeOpacity={0.7} hitSlop={25} onPress={onDeleteTask}>
                 <Icon name='trash-o' color={Colors.black} size={scale(22)} />
                 <Text style={styles.txtDelete}>Xoá</Text>
             </TouchableOpacity>
 
-            <Input defaultValue={''} onChangeTextValue={setTaskTitle} />
+            <Animated.View ref={inputRef}>
+                <Text numberOfLines={1} style={styles.txtTitle}>{''}</Text>
+                <View style={styles.divider} />
+            </Animated.View>
 
             <View style={styles.time}>
-                <TouchableOpacity style={[Layout.rowBetween, styles.time]} activeOpacity={0.7} onPress={() => setOpenTimePick(true)}>
+                <TouchableOpacity style={[Layout.rowBetween, styles.time]} activeOpacity={0.7} onPress={() => { setOpenTimePick(true) }}>
                     <Text style={styles.txtTime}>Thời hạn</Text>
                     <Text style={styles.txtDate}>{formatDate(date)}</Text>
                 </TouchableOpacity>
-                <View style={[styles.divider]} />
+                <View style={styles.divider} />
             </View>
 
             <View style={styles.time}>
@@ -75,8 +71,7 @@ const EditTask = ({ onPressSave, item, onDeleteTask }: Props) => {
 
             <View style={Layout.center}>
                 <TouchableOpacity
-                    disabled={taskTitle === ''}
-                    style={[styles.done, { backgroundColor: !!taskTitle ? Colors.green : Colors.grey, }]}
+                    style={styles.done}
                     activeOpacity={0.7}
                     hitSlop={25}
                     onPress={onPressEdit}>
@@ -139,7 +134,8 @@ const styles = StyleSheet.create({
         width: scale(120),
         paddingVertical: scale(8),
         borderRadius: scale(15),
-        marginTop: scale(40)
+        marginTop: scale(40),
+        backgroundColor: Colors.green
     },
     txtDone: {
         color: Colors.white,
@@ -178,5 +174,15 @@ const styles = StyleSheet.create({
         fontSize: fontScale(12),
         fontWeight: '400',
         color: Colors.black
-    }
+    },
+    input: {
+        color: 'transparent',
+    },
+    txtTitle: {
+        fontWeight: '500',
+        fontSize: fontScale(16),
+        color: Colors.black,
+        marginLeft: scale(10),
+        marginBottom: scale(10)
+    },
 })

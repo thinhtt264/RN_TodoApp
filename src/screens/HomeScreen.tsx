@@ -66,8 +66,8 @@ const HomeScreen = () => {
         dispatch(todoActions.onDeleteTask({ id }))
     }
 
-    const renderItem = (item: TodoItemType, index: number) => {
-        return <ListItem item={item} index={index} onSaveEdit={onSaveEdit} onDeleteTask={onDeleteTask} />
+    const renderItem = (item: TodoItemType) => {
+        return <ListItem item={item} onSaveEdit={onSaveEdit} onDeleteTask={onDeleteTask} />
     }
 
     return (
@@ -90,7 +90,7 @@ const HomeScreen = () => {
                             showsVerticalScrollIndicator={false}
                             ItemSeparatorComponent={Sperator}
                             ListFooterComponent={<View style={styles.divider} />}
-                            renderItem={({ item, index }) => renderItem(item, index)}
+                            renderItem={({ item, index }) => renderItem(item)}
                         />
                         : null
                 }

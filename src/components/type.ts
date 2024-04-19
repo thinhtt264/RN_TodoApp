@@ -1,4 +1,4 @@
-import {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {ReactNode} from 'react';
 
 export interface CheckBoxProps {
@@ -21,7 +21,7 @@ export interface ModalProps {
 
 export interface InputProps extends TextInputProps {
   style?: StyleProp<ViewStyle>;
-  inputStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
   validate?: boolean;
   onChangeTextValue?: (input: string) => void;
   contentRight?: () => React.ReactNode;

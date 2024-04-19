@@ -3,10 +3,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     interpolate,
     LinearTransition,
-    runOnJS,
     useAnimatedStyle,
+    useSharedValue,
     withSpring,
     withTiming,
+    measure,
+    useAnimatedRef,
+    runOnUI,
 } from 'react-native-reanimated';
 import isEqual from 'react-fast-compare';
 import Icon from 'react-native-vector-icons/SimpleLineIcons'
@@ -14,13 +17,12 @@ import { formatPriority, formatTime, PriorityType, fontScale, scale, TodoItemTyp
 import { Colors, Layout } from '../themes';
 import CheckBox from './Checkbox';
 import { EditTaskComponent } from './EditTask';
+import { Input } from './Input';
 
 type ListItemProps = {
     item: TodoItemType,
     onSaveEdit: (item: TodoItemType) => void;
-    index: number;
     onDeleteTask: (id: string) => void;
-    // translationY: SharedValue<number>;
 };
 
 const getPriorityTextStyle = (priority: PriorityType) => {
@@ -56,15 +58,10 @@ const existing = () => {
         opacity: 1,
         transform: [{ scale: 1 }],
     };
-    const callback = (finished: boolean) => {
-        if (finished) {
-            console.log('zo k');
-        }
-    };
+
     return {
         initialValues,
         animations,
-        callback
     };
 };
 
@@ -86,74 +83,81 @@ const entering = () => {
         animations,
     };
 };
+const scaleInputDiff = scale(8);
+const editorHeight = scale(320)
+const defaultHeight = scale(135)
 
-const existingTaskInfo = () => {
-    'worklet';
-    const animations = {
-        opacity: withTiming(0, { duration: 500 }),
-    };
-    const initialValues = {
-        opacity: 1,
-    };
-    return {
-        initialValues,
-        animations,
-    };
-}
-
-const enteringTaskInfo = () => {
-    'worklet';
-    const animations = {
-        opacity: withTiming(1, { duration: 500 }),
-    };
-    const initialValues = {
-        opacity: 0,
-    };
-    return {
-        initialValues,
-        animations,
-    };
-}
-
-
-const Item_Height = scale(160)
-
-const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index }: ListItemProps) => {
+const ListItemComponent = ({ item, onSaveEdit, onDeleteTask }: ListItemProps) => {
+    const { isDone = false, title, time = Date.now() } = item
     const [isEdit, setIsEdit] = useState(false)
-    const [taskInfoHeight, setTaskInfoHeight] = useState(0)
 
-    const { isDone = false, title, priority, time } = item
+    const [taskTitle, setTaskTitle] = useState(title)
+    const [date, setDate] = useState(new Date(time))
+    const [priority, setPriority] = useState<PriorityType>(item.priority)
+
+    const targetRef = useAnimatedRef();
+    const sourceRef = useAnimatedRef();
+
+    const translateX = useSharedValue(0);
+    const translateY = useSharedValue(0);
+
     const priorityTextStyle = useMemo(() => getPriorityTextStyle(priority), [priority]);
 
     const animation = useSharedTransition(isEdit);
 
 
-    const onPressSaveEdit = useCallback((item: TodoItemType) => {
-        onSaveEdit(item)
+    const onPressSaveEdit = useCallback(() => {
         setIsEdit(false)
-    }, [])
+        moveComponentToTarget(false)
+        onSaveEdit({
+            ...item,
+            title: taskTitle,
+            priority: priority,
+            time: date.getTime()
+        })
+    }, [date, taskTitle, priority])
 
     const hiddingTaskInfoStylez = useAnimatedStyle(() => {
         const opacity = interpolate(animation.value, [0, 1], [1, 0])
+        const translateX = interpolate(animation.value, [0, 0.9, 1], [0, 0, -300])  //icon che mất
+
+        return {
+            opacity,
+            transform: [{ translateX }]
+        }
+    }, [isEdit])
+
+    const hiddingTaskEditStylez = useAnimatedStyle(() => {
+        const opacity = interpolate(animation.value, [0, 1], [0, 1])
 
         return {
             opacity,
         }
-    })
+    }, [isEdit])
 
-    const hiddingTaskEditStylez = useAnimatedStyle(() => {
-        const opacity = interpolate(animation.value, [1, 0], [1, 0])
-        return {
-            opacity
-        }
-    })
+    const moveComponentToTarget = (isEdit: boolean) => {
+        runOnUI(() => {
+            'worklet';
+            const measurement = measure(targetRef);
+            const measurement1 = measure(sourceRef);
 
-    const containerStylez = useAnimatedStyle(() => {
-        const height = interpolate(animation.value, [0, 0.6], [taskInfoHeight, 300])
+            if (measurement === null || measurement1 === null) {
+                return;
+            }
+
+            translateX.value = withTiming(isEdit ? (measurement.pageX - measurement1.pageX - scaleInputDiff) : 0, { duration: 500 });
+            translateY.value = withTiming(isEdit ? (measurement.pageY - measurement1.pageY) : 0, { duration: 500 });
+        })();
+    };
+
+    const titleStylez = useAnimatedStyle(() => {
         return {
-            height
-        }
-    }, [taskInfoHeight])
+            transform: [
+                { translateX: translateX.value },
+                { translateY: translateY.value },
+            ],
+        };
+    }, []);
 
     // const stylez = useAnimatedStyle(() => {
     //     const scale = interpolate(
@@ -167,18 +171,21 @@ const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index }: ListItemPr
     //     };
     // }); không có height cố định không làm trò này được
 
-    const onPressDeleteTask = (id: string) => {
+    const onPressDeleteTask = () => {
         setIsEdit(false)
+        moveComponentToTarget(false)
         setTimeout(() => {
-            onDeleteTask(id)
+            onDeleteTask(item.id)
         }, 300);
     }
-    const onTaskInfoLayout = (event: any) => {
-        const { height } = event.nativeEvent.layout;
-        if (height != taskInfoHeight) {
-            console.log(height + scale(30));
-            runOnJS(setTaskInfoHeight)(height + scale(60));
-        }
+
+    const onOpenEditor = () => {
+        setIsEdit(true)
+        moveComponentToTarget(true)
+    }
+
+    const onChangeText = (value: string) => {
+        setTaskTitle(value)
     }
 
     return (
@@ -186,31 +193,49 @@ const ListItemComponent = ({ item, onSaveEdit, onDeleteTask, index }: ListItemPr
             layout={LinearTransition.duration(500)}
             entering={entering}
             exiting={existing}
-            style={[styles.container]}>
-            <Animated.View
-                style={styles.card}>
+            style={[styles.container, { height: isEdit ? editorHeight : defaultHeight }]}>
+            <Animated.View style={styles.card}>
                 <Animated.View style={hiddingTaskEditStylez}>
-                    <EditTaskComponent item={item} onPressSave={onPressSaveEdit} onDeleteTask={onPressDeleteTask} />
+                    <EditTaskComponent
+                        onChangeText={onChangeText}
+                        inputRef={targetRef}
+                        date={date}
+                        priority={priority}
+                        setPriority={setPriority}
+                        setDate={setDate}
+                        onPressSave={onPressSaveEdit}
+                        onDeleteTask={onPressDeleteTask} />
                 </Animated.View>
 
-                <Animated.View onLayout={onTaskInfoLayout} style={[styles.taskInfo, hiddingTaskInfoStylez]}>
+                <View style={styles.taskInfo}>
                     <View style={Layout.rowBetween}>
-                        <View style={Layout.rowBetween}>
-                            <CheckBox defaultValue={isDone} />
-                            <Text numberOfLines={1} style={styles.txtTitle}>{title}</Text>
+                        <View style={[Layout.rowBetween, Layout.fill]}>
+                            <Animated.View style={hiddingTaskInfoStylez}>
+                                <CheckBox defaultValue={isDone} />
+                            </Animated.View>
+
+                            <Animated.View ref={sourceRef} style={titleStylez}>
+                                <Input
+                                    editable={isEdit}
+                                    defaultValue={taskTitle}
+                                    onChangeTextValue={onChangeText}
+                                    style={styles.input}
+                                    inputStyle={styles.txtTitle} />
+                            </Animated.View>
                         </View>
-                        <TouchableOpacity activeOpacity={0.7} hitSlop={25} onPress={() => setIsEdit(prev => !prev)}>
-                            <Icon name='pencil' color={Colors.black} size={scale(15)} />
-                        </TouchableOpacity>
+
+                        <Animated.View style={[hiddingTaskInfoStylez, { width: scale(15) }]}>
+                            <TouchableOpacity activeOpacity={0.7} hitSlop={25} onPress={onOpenEditor}>
+                                <Icon name='pencil' color={Colors.black} size={scale(15)} />
+                            </TouchableOpacity>
+                        </Animated.View>
+
                     </View>
-                    <View style={[Layout.rowBetween, styles.row2]}>
+                    <Animated.View style={[Layout.rowBetween, styles.row2, hiddingTaskInfoStylez]}>
                         <Text style={[styles.txtPriority, priorityTextStyle]}>{`Ưu tiên ${formatPriority(priority)?.toLowerCase()}`}</Text>
                         <Text style={styles.time}>{formatTime(time)}</Text>
-                    </View>
-                </Animated.View>
-
-
-
+                    </Animated.View>
+                </View>
             </Animated.View>
         </Animated.View >
     );
@@ -231,7 +256,7 @@ const styles = StyleSheet.create({
     },
     txtTitle: {
         fontWeight: '500',
-        fontSize: fontScale(15),
+        fontSize: fontScale(16),
         color: Colors.black,
         marginLeft: scale(10)
     },
@@ -251,7 +276,9 @@ const styles = StyleSheet.create({
     taskInfo: {
         position: 'absolute',
         left: scale(15),
-        top: scale(30),
+        top: scale(20),
         right: scale(15),
-    }
+        // zIndex:-1
+    },
+    input: {},
 });

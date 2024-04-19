@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { Easing } from "react-native";
-import { SharedValue, useDerivedValue, useSharedValue, withTiming, WithTimingConfig } from "react-native-reanimated";
+import { Easing, SharedValue, useDerivedValue, useSharedValue, withTiming, WithTimingConfig } from "react-native-reanimated";
 
 export const sharedBin = (value: boolean): 0 | 1 => {
   'worklet';
@@ -20,7 +19,7 @@ export const useSharedTransition = (
   return useDerivedValue(() =>
     withTiming(
       value.value,
-      { duration: 500, ...config }
+      { duration: 400, easing: Easing.linear, ...config }
     ),
   );
 };

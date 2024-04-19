@@ -55,7 +55,7 @@ const InputComponent = forwardRef<InputRef, InputProps>(
                 <View style={[{ paddingVertical: scale(8) }, Layout.rowVCenter]}>
                     {contentLeft?.()}
                     <TextInput
-                        style={[inputStyle, styles.inputStyle]}
+                        style={[styles.inputStyle, inputStyle]}
                         ref={inputRef}
                         value={value}
                         onChangeText={onChangeText}
@@ -74,7 +74,6 @@ const InputComponent = forwardRef<InputRef, InputProps>(
                     />
                     {contentRight?.()}
                 </View>
-                <View style={[styles.divider, { backgroundColor: isFocusing ? Colors.black : Colors.grey }]} />
             </View>
 
         );
@@ -93,8 +92,4 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         fontSize: fontScale(16)
     },
-    divider: {
-        width: '100%',
-        height: 1,
-    }
 });
