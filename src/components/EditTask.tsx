@@ -55,7 +55,7 @@ const EditTask = ({ onPressSave, item, onDeleteTask }: Props) => {
                 <Text style={styles.txtDelete}>Xoá</Text>
             </TouchableOpacity>
 
-            <Input defaultValue={taskTitle} placeholder='Task Title' onChangeTextValue={setTaskTitle} />
+            <Input defaultValue={''} onChangeTextValue={setTaskTitle} />
 
             <View style={styles.time}>
                 <TouchableOpacity style={[Layout.rowBetween, styles.time]} activeOpacity={0.7} onPress={() => setOpenTimePick(true)}>

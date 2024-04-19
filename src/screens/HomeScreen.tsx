@@ -85,7 +85,7 @@ const HomeScreen = () => {
                         <AnimatedList
                             data={sortedTodoList}
                             extraData={sortedTodoList}
-                            itemLayoutAnimation={LinearTransition}
+                            itemLayoutAnimation={LinearTransition.duration(500)}
                             keyExtractor={item => item.id.toString()}
                             showsVerticalScrollIndicator={false}
                             ItemSeparatorComponent={Sperator}
