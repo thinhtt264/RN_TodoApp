@@ -83,7 +83,7 @@ const entering = () => {
         animations,
     };
 };
-const scaleInputDiff = scale(8);
+const scaleInputDiff = scale(10);
 const editorHeight = scale(320)
 const defaultHeight = scale(135)
 
